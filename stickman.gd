@@ -28,6 +28,7 @@ func play_animation(player : Player,wall_right : bool) -> void:
 	
 	match player.state:
 		player.PlayerState.idle:
+			# Blend time is first float on second line
 			anim_player.play("idle",
 			0.2)
 		player.PlayerState.running:
@@ -45,7 +46,6 @@ func play_animation(player : Player,wall_right : bool) -> void:
 		player.PlayerState.falling:
 			anim_player.play(str("jump_",str_dir),
 			0.2)
-			#model.anim_player.play(str("fall_",str_dir),0.1)
 		player.PlayerState.sliding:
 			anim_player.play(str("slide_",str_dir),
 			0.1)

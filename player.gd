@@ -83,13 +83,12 @@ var is_crouching : bool = false
 ## Prevent uncrouching if roof is blocking it
 var can_uncrouch : bool = true
 
-## Prevent bug in transition of stance (normal, sliding, crouching)
-var trans_stance : bool = false
-
 ## Make the fall faster and allows to ungrab ledges
 var faster_fall_slide : bool = false
 
 var sliding_off_edge : bool = false
+
+var velocity_x_on_slide_off : float = 0
 
 signal uncrouch
 
@@ -117,9 +116,15 @@ func is_sliding_off_edge() -> bool:
 		!Input.is_action_pressed("jump")
 	)
 
+var was_on_floor : bool = false
+
 func _physics_process(delta : float) -> void:
 	# Bug velocity when jumping off wall with roofon head come from ray detecting wall but not roof while jumping
-	var on_floor : bool = is_on_floor()
+	var on_floor : bool = no_fall_ray.is_colliding()
+	
+	if on_floor != was_on_floor:
+		was_on_floor = on_floor
+		change_stance_height()
 	
 	if on_floor:
 		sliding_off_edge = false
@@ -147,10 +152,14 @@ func _physics_process(delta : float) -> void:
 	if on_floor:
 		crouch_state(dir)
 	elif is_sliding_off_edge() && velocity.y >= 0:
+		if !sliding_off_edge:
+			velocity_x_on_slide_off = velocity.x
 		sliding_off_edge = true
+		#Check if distance from ledge is greater than width, and if so, apply velocity to prevent flying off ledge
 		if close_floor_right_ray.is_colliding():
-			velocity.x = 100
-		else:
+			if (close_floor_right_ray.get_collision_point().x - global_position.x) > (col.shape.size.x / 2):
+				velocity.x = 100
+		elif (global_position.x - close_floor_left_ray.get_collision_point().x) > (col.shape.size.x / 2):
 			velocity.x = -100
 	
 	if velocity.y < 0:
@@ -195,7 +204,7 @@ func crouch_state(dir : float) -> void:
 	if is_sliding:
 		state = PlayerState.sliding
 		if !sliding_particle.emitting:
-			sliding_particle.position = Vector2(0,-10)
+			sliding_particle.position = Vector2(0,64)
 			sliding_particle.rotation_degrees = 90
 			sliding_particle.emitting = true
 	elif is_crouching:
@@ -301,23 +310,17 @@ func do_slide(slide : bool) -> void:
 
 ## Make the change of collision for the stances(normal, crouch, slide)
 func change_stance_height() -> void:
-	var tween : Tween = create_tween()
-	var shape_size : Vector2 = col_shape.size
-	if is_sliding:
-		shape_size.y = 40
-		tween.parallel().tween_property(col,"position",Vector2(0,-15),0.2)
-	elif is_crouching:
-		shape_size.y = 120
-		tween.parallel().tween_property(col,"position",Vector2(0,-15),0.2)
-	else:
-		shape_size.y = 148
-		tween.parallel().tween_property(col,"position",Vector2.ZERO,0.2)
-	tween.parallel().tween_property(col_shape,"size",shape_size,0.2)
-	
-	# Prevent errors in animations
-	trans_stance = true
-	await tween.finished
-	trans_stance = false
+	if was_on_floor:
+		if is_sliding:
+			col_shape.size.y = 40
+			col.position.y = 54
+			return
+		elif is_crouching:
+			col_shape.size.y = 120
+			col.position.y = 24
+			return
+	col_shape.size.y = 148
+	col.position.y = 0
 
 func do_jump() -> void:
 	var on_floor : bool = is_on_floor()
@@ -338,11 +341,14 @@ func do_jump() -> void:
 		velocity.y = 0
 	
 	# Give boost to jump when sliding
-	if ((is_sliding || is_crouching) && 
-		[PlayerState.crouching,PlayerState.crouching_idle,PlayerState.sliding].has(state)):
+	if (((is_sliding || is_crouching) && 
+		[PlayerState.crouching,PlayerState.crouching_idle,PlayerState.sliding].has(state))) || sliding_off_edge:
 		velocity.y = -jump_force * 1.5
 	else:
 		velocity.y = -jump_force
+	
+	if sliding_off_edge:
+		velocity.x = velocity_x_on_slide_off
 	
 	sliding_off_edge = false
 	
