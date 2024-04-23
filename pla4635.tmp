@@ -1,0 +1,123 @@
+[gd_scene load_steps=7 format=3 uid="uid://ljrfk0jepp0a"]
+
+[ext_resource type="Script" path="res://player.gd" id="1_fiont"]
+[ext_resource type="PackedScene" uid="uid://db5nxlxx3e317" path="res://stickman.tscn" id="1_tyiu5"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xbfbt"]
+size = Vector2(20, 148)
+
+[sub_resource type="Gradient" id="Gradient_godj2"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_f7s3v"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_eky8t"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[node name="player" type="CharacterBody2D"]
+script = ExtResource("1_fiont")
+acceleration = null
+friction = null
+max_speed = null
+min_speed_run = null
+jump_force = null
+gravity = null
+gravity_div_wall = null
+min_speed_slide = null
+max_camera_offset = null
+camera_range = null
+
+[node name="no_fall_ray" type="RayCast2D" parent="."]
+target_position = Vector2(0, 84)
+
+[node name="close_right" type="RayCast2D" parent="no_fall_ray"]
+position = Vector2(35, 0)
+target_position = Vector2(0, 90)
+
+[node name="close_left" type="RayCast2D" parent="no_fall_ray"]
+position = Vector2(-35, 0)
+target_position = Vector2(0, 90)
+
+[node name="col" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_xbfbt")
+
+[node name="model" parent="." instance=ExtResource("1_tyiu5")]
+
+[node name="camera" type="Camera2D" parent="."]
+zoom = Vector2(0.35, 0.35)
+position_smoothing_enabled = true
+
+[node name="jump_particle" type="CPUParticles2D" parent="."]
+position = Vector2(0, 64)
+emitting = false
+one_shot = true
+explosiveness = 1.0
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 30.0
+scale_amount_min = 20.0
+scale_amount_max = 30.0
+color_ramp = SubResource("Gradient_godj2")
+
+[node name="ray_roof_uncrouch" type="RayCast2D" parent="."]
+position = Vector2(0, -49)
+target_position = Vector2(0, -45)
+
+[node name="speed_particle" type="CPUParticles2D" parent="."]
+amount = 16
+emission_shape = 3
+emission_rect_extents = Vector2(1, 50)
+gravity = Vector2(0, 0)
+scale_amount_min = 5.0
+scale_amount_max = 10.0
+color_ramp = SubResource("Gradient_f7s3v")
+
+[node name="ledge_right" type="RayCast2D" parent="."]
+position = Vector2(0, -129)
+target_position = Vector2(35, 0)
+
+[node name="ledge_left" type="RayCast2D" parent="."]
+position = Vector2(0, -129)
+target_position = Vector2(-35, 0)
+
+[node name="left_wall_rays" type="Node2D" parent="."]
+
+[node name="left" type="RayCast2D" parent="left_wall_rays"]
+position = Vector2(0, -86)
+target_position = Vector2(-35, 0)
+
+[node name="left3" type="RayCast2D" parent="left_wall_rays"]
+position = Vector2(0, -12)
+target_position = Vector2(-35, 0)
+
+[node name="left4" type="RayCast2D" parent="left_wall_rays"]
+position = Vector2(0, 59)
+target_position = Vector2(-35, 0)
+
+[node name="right_wall_rays" type="Node2D" parent="."]
+
+[node name="right" type="RayCast2D" parent="right_wall_rays"]
+position = Vector2(0, -86)
+target_position = Vector2(35, 0)
+
+[node name="right3" type="RayCast2D" parent="right_wall_rays"]
+position = Vector2(0, -12)
+target_position = Vector2(35, 0)
+
+[node name="right4" type="RayCast2D" parent="right_wall_rays"]
+position = Vector2(0, 59)
+target_position = Vector2(35, 0)
+
+[node name="sliding_particle" type="CPUParticles2D" parent="."]
+z_index = 5
+position = Vector2(38, 0)
+emitting = false
+amount = 26
+lifetime = 0.5
+emission_shape = 3
+emission_rect_extents = Vector2(1, 75)
+gravity = Vector2(0, 0)
+scale_amount_min = 15.0
+scale_amount_max = 22.0
+color_ramp = SubResource("Gradient_eky8t")
