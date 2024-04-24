@@ -323,8 +323,8 @@ func change_stance_height() -> void:
 	col.position.y = 0
 
 func do_jump() -> void:
-	var on_floor : bool = is_on_floor()
-	if !(on_floor || last_state == PlayerState.wall || no_fall_ray.is_colliding()):
+	var on_floor : bool = no_fall_ray.is_colliding()
+	if !(on_floor || last_state == PlayerState.wall):
 			return
 	
 	# Give boost depending of direction pressed when jumping from wall
@@ -341,8 +341,7 @@ func do_jump() -> void:
 		velocity.y = 0
 	
 	# Give boost to jump when sliding
-	if (((is_sliding || is_crouching) && 
-		[PlayerState.crouching,PlayerState.crouching_idle,PlayerState.sliding].has(state))) || sliding_off_edge:
+	if (is_sliding || is_crouching) && (sliding_off_edge || on_floor):
 		velocity.y = -jump_force * 1.5
 	else:
 		velocity.y = -jump_force

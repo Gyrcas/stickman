@@ -55,3 +55,6 @@ func play_animation(player : Player,wall_right : bool) -> void:
 		player.PlayerState.crouching_idle:
 			anim_player.play(str("crouch_",str_dir,"_idle"),
 			0.2, 2)
+
+func die() -> void:
+	pass
